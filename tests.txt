@@ -1,0 +1,77 @@
+// - in an expected outcome indicates that test wasn't designed to see anything specific about that slot
+
+//Skip best rune 1 if all seconds are better
+air 30, chaos 1
+lava 30, air 29
+mist 30, air 29
+dust 30, air 29 
+//Expected Output: Chaos Air Air Air
+
+//Dual rune 1 if some seconds are better
+air 30, water 29
+water 30, lava 5
+mist 30, lava 5
+mud 30, lava 5
+//Expected Output: Water/Air Water - -
+
+
+//Handle no alts for second slots
+lava 30, air 29, death 28
+air 30
+air 30
+air 30
+//Expected Output: Death Air Air Air
+//Caused a bug to be found using an index 1 instead of 0
+
+//Handle no alts for first slots
+air 30
+lava 30, air 29, earth 20
+earth 30
+earth 30
+//Expected Air Earth Earth Earth
+//Caused a bug to be found where was checking profit loss for switching to a non-existant alt
+
+
+//Skip best rune 2 if first is better
+water 30, chaos 1
+lava 30, water 29, fire 28
+mist 30, lava 29
+mud 30, lava 29
+//Expected Water Fire - -
+
+//Iron alts
+fire 30, water 29
+death 30, earth 20
+mist 30, mud 10
+lava 30, steam 10
+//Expected Water Death - - for normals
+//Expected Fire Earth - - for irons
+
+//Missing Commas
+fire 30 water 29
+death 30 earth 20
+mist 30 mud 10
+lava 30 steam 10
+//Expected Error
+
+//Misspelled Rune
+fire 30, water 29
+death 30, arth 20
+mist 30, mud 10
+lava 30, steam 10
+//Expected Error
+
+//Missing Amount
+fire 30, water 29
+death 30, earth 20
+mist 30, mud 10
+lava 30, steam
+//Expected Error
+
+//Long strings of runes
+fire 30, water 29, air 28, earth 26, mist 20, chaos 19, death 23, astral 25
+death 30, earth 20, chaos 19, death 23, astral 25
+mist 30, mud 10, water 29, air 28, earth 26, body 20, chaos 19, death 23, astral 25
+lava 30, steam 16, water 29, air 28, earth 26, mist 20, chaos 19, death 23, astral 25
+//Expected Long String of Comma Seperated Runes
+//Running this many tests in sequence caused the api limit to be reached and highlighting a bug in the error handling for that case
