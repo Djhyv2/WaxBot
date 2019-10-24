@@ -7,4 +7,4 @@ For example, the runes for September 13, 2019 would be input to the bot as follo
 >Mud 30, Mind 24, Chaos 22, Water 26  
 >Fire 30, Air 24, Water 26  
 
-There is also 10 test cases I used located within the code folder [here](Code/tests.txt)
+There is also 10 test cases I used located [here](tests.txt)
