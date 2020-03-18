@@ -10,7 +10,7 @@ const quantities = require('./runeData.json');//Contains values for ironmen and 
 //http://services.runescape.com/m=itemdb_rs/api/catalogue/search.json?page=1&query=name&simple=1 api call to search for item by name, not found in documentation
 function geHttpRunescapeData(callback, id)
 {
-    request.get(`http://services.runescape.com/m=itemdb_rs/api/catalogue/detail.json?item=${id}`, (error, response, body) =>
+    request.get(`http://services.runescape.com/m=itemdb_rs/api/graph/${id}.json`, (error, response, body) =>
     {
         if (null != error || '' === body || 200 !== response.statusCode)
         {
@@ -21,10 +21,9 @@ function geHttpRunescapeData(callback, id)
             try
             {
                 const json = JSON.parse(body);
-                const { price } = json.item.current;
-                const priceString = price.toString().replace(',', '');
-                const priceInt = parseInt(priceString, 10);//Converts string into json into string into int
-                callback(null, { price: priceInt });
+                const maxTimestampKey = Math.max(...Object.keys(json.daily));
+                const price = json.daily[maxTimestampKey];
+                callback(null, { price });
             }
             catch (innerError)
             {
