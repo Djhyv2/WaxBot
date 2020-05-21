@@ -4,6 +4,7 @@ const discord = require('discord.js');//Allows connection to discord
 const async = require('async');//Allows use of async.parallel to perform parallel I/O
 const request = require('request');//Allows use of request.get to sent http requests
 const _ = require('lodash');//Lodash is an expansive package containing a large amount of utility features including a deep merge
+const express = require('express')();
 const auth = require('./auth.json');//Contains the security token for the bot. In Format of { token: (token) }
 const quantities = require('./runeData.json');//Contains values for ironmen and quantities of runes needed
 
@@ -301,7 +302,6 @@ async function runBot()
             catch (error)
             {
                 message.channel.send(error.message);
-                return;
             }
         },
     );//Message handler
@@ -316,3 +316,25 @@ async function runBot()
     }//Establishes connection to Discord Servers
 }//Async wrapper allows use of await within main body of code
 runBot();
+
+
+//Will repeatedly ping own server to keep Azure awake
+async function repeatPing()
+{
+    request.get('https://waxbot.azurewebsites.net/');
+    console.log('Pinging Self');
+    setTimeout(() =>
+    {
+        repeatPing();
+    }, 60000);
+}
+
+//Open Web Port to Prevent Azure from Disabling Bot
+express.get('/', async (req, res) =>
+{
+    res.send('Wax Bot');
+    console.log('Wax Bot');
+});
+
+express.listen(8080);
+repeatPing();
