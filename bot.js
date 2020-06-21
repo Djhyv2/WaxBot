@@ -246,7 +246,7 @@ function calculateAlts(parsedData, data)
         },
     );//Gets current date
 
-    const responseMessage = `${date}\nSlot 1:\n\t ${printSlot(computedData[0])}\nSlot 2:\n\t${printSlot(computedData[1])}\n\t${printSlot(computedData[2])}\n\t${printSlot(computedData[3])}\nAlts: ${capitalizeFirst(alts[0].rune)}${null != alts[1] ? `/${capitalizeFirst(alts[1].rune)}` : ''} ${capitalizeFirst(alts[2].rune)} ${capitalizeFirst(alts[3].rune)} ${capitalizeFirst(alts[4].rune)} \nIron Alts: ${capitalizeFirst(ironAlts[0].rune)}${null != ironAlts[1] ? `/${capitalizeFirst(ironAlts[1].rune)}` : ''} ${capitalizeFirst(ironAlts[2].rune)} ${capitalizeFirst(ironAlts[3].rune)} ${capitalizeFirst(ironAlts[4].rune)} `;//Creates readable version of alts
+    const responseMessage = `${date}\nSlot 1:\n\t${printSlot(computedData[0])}\nSlot 2:\n\t${printSlot(computedData[1])}\n\t${printSlot(computedData[2])}\n\t${printSlot(computedData[3])}\nAlts: ${capitalizeFirst(alts[0].rune)}${null != alts[1] ? `/${capitalizeFirst(alts[1].rune)}` : ''} ${capitalizeFirst(alts[2].rune)} ${capitalizeFirst(alts[3].rune)} ${capitalizeFirst(alts[4].rune)} \nIron Alts: ${capitalizeFirst(ironAlts[0].rune)}${null != ironAlts[1] ? `/${capitalizeFirst(ironAlts[1].rune)}` : ''} ${capitalizeFirst(ironAlts[2].rune)} ${capitalizeFirst(ironAlts[3].rune)} ${capitalizeFirst(ironAlts[4].rune)} `;//Creates readable version of alts
     return responseMessage;
 }
 
