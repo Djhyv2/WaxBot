@@ -301,7 +301,6 @@ async function runBot()
             catch (error)
             {
                 message.channel.send(error.message);
-                return;
             }
         },
     );//Message handler
@@ -313,6 +312,7 @@ async function runBot()
     catch (error)
     {
         console.log('Invalid Login Token');
+        process.exit();
     }//Establishes connection to Discord Servers
 }//Async wrapper allows use of await within main body of code
 runBot();
