@@ -221,7 +221,7 @@ function calculateAlts(parsedData, data)
 
     computedData = computedData.map((row) => row.sort((component1, component2) =>
     {
-        if ('30' === component2.wax || '60' === component1.wax)
+        if ('30' === component2.wax || '60' === component2.wax)
         {
             return 1;
         }
