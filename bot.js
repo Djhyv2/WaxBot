@@ -219,22 +219,31 @@ function calculateAlts(parsedData, data)
         alts[1] = null;
     }//If second slot has a better rune than the first for all 3, move the first slot to its alternate
 
-    computedData = computedData.map((row) => row.sort((component1, component2) =>
+    computedData = computedData.map((row) =>
     {
-        if ('30' === component2.wax || '60' === component2.wax)
+        let maxWaxRune = row[0];
+        row.forEach((item) =>
         {
-            return 1;
-        }
-        if (component1.profit > component2.profit || '30' === component1.wax || '60' === component1.wax)
+            if (item.wax > maxWaxRune.wax)
+            {
+                maxWaxRune = item;
+            }
+        });
+        row.sort((component1, component2) =>
         {
-            return -1;
-        }
-        if (component1.profit < component2.profit)
-        {
-            return 1;
-        }
-        return 0;
-    }));//Sorts each row by main rune then profit
+            if (component1.profit > component2.profit)
+            {
+                return -1;
+            }
+            if (component1.profit < component2.profit)
+            {
+                return 1;
+            }
+            return 0;
+        });
+        row.unshift(maxWaxRune);
+        return row;
+    });//Sorts each row by main rune then profit
 
     const date = new Date().toLocaleDateString(
         'en-US',
@@ -253,7 +262,6 @@ function calculateAlts(parsedData, data)
 async function runBot()
 {
     const bot = new discord.Client();
-
     bot.on(
         'ready',
         () =>
