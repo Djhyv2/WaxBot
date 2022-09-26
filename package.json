@@ -13,7 +13,7 @@
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-plugin-import": "^2.20.1",
     "nodemon": "^1.19.4",
-    "pm2": "^4.2.3"
+    "pm2": "^5.2.0"
   },
   "scripts": {
     "start": "./node_modules/.bin/nodemon --inspect-brk ./bot.js",
