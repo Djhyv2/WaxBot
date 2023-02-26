@@ -1,106 +1,12 @@
 /*eslint-disable prefer-destructuring */
 /*eslint-disable no-console */
 const discord = require('discord.js');//Allows connection to discord
-const async = require('async');//Allows use of async.parallel to perform parallel I/O
-const request = require('request');//Allows use of request.get to sent http requests
-const _ = require('lodash');//Lodash is an expansive package containing a large amount of utility features including a deep merge
 const auth = require('./auth.json');//Contains the security token for the bot. In Format of { token: (token) }
-const quantities = require('./runeData.json');//Contains values for ironmen and quantities of runes needed
 
-//http://services.runescape.com/m=itemdb_rs/api/catalogue/search.json?page=1&query=name&simple=1 api call to search for item by name, not found in documentation
-function geHttpRunescapeData(callback, id)
-{
-    request.get(`http://services.runescape.com/m=itemdb_rs/api/graph/${id}.json`, (error, response, body) =>
-    {
-        if (null != error || '' === body || 200 !== response.statusCode)
-        {
-            callback('Unable to reach GE Server', null);
-        }
-        else
-        {
-            try
-            {
-                const json = JSON.parse(body);
-                const maxTimestampKey = Math.max(...Object.keys(json.daily));
-                const price = json.daily[maxTimestampKey];
-                callback(null, { price });
-            }
-            catch (innerError)
-            {
-                callback(innerError, null);
-            }
-        }
-    });//Fires http request to Runescape Servers to get item data
-}
-
-async function fetchGEPrices()
-{
-    let prices;
-    try
-    {
-        prices = await async.series(
-            {
-                fire: (callback) => geHttpRunescapeData(callback, 554),
-                water: (callback) => geHttpRunescapeData(callback, 555),
-                air: (callback) => geHttpRunescapeData(callback, 556),
-                earth: (callback) => geHttpRunescapeData(callback, 557),
-                mind: (callback) => geHttpRunescapeData(callback, 558),
-                body: (callback) => geHttpRunescapeData(callback, 559),
-                death: (callback) => geHttpRunescapeData(callback, 560),
-                nature: (callback) => geHttpRunescapeData(callback, 561),
-                chaos: (callback) => geHttpRunescapeData(callback, 562),
-                law: (callback) => geHttpRunescapeData(callback, 563),
-                cosmic: (callback) => geHttpRunescapeData(callback, 564),
-                blood: (callback) => geHttpRunescapeData(callback, 565),
-                soul: (callback) => geHttpRunescapeData(callback, 566),
-                steam: (callback) => geHttpRunescapeData(callback, 4694),
-                mist: (callback) => geHttpRunescapeData(callback, 4695),
-                dust: (callback) => geHttpRunescapeData(callback, 4696),
-                smoke: (callback) => geHttpRunescapeData(callback, 4697),
-                mud: (callback) => geHttpRunescapeData(callback, 4698),
-                lava: (callback) => geHttpRunescapeData(callback, 4699),
-                astral: (callback) => geHttpRunescapeData(callback, 9075),
-                wax: (callback) => geHttpRunescapeData(callback, 32092),
-            },
-        );//Ran in series to avoid throttling from runescape servers
-    }
-    catch (error)
-    {
-        console.log(error);
-        return null;
-    }
-
-    const data = _.merge(quantities, prices);//Deep merge prices and quantities data
-    return data;
-}//Fetches data from Runescape API
-
-function capitalizeFirst(string)
-{
-    return string.charAt(0).toUpperCase() + string.slice(1);//Capitalize first letter of string
-}
-
-function printSlot(slot)
-{
-    let string = '';
-    string += `${capitalizeFirst(slot[0].rune)} `;
-    if (1 < slot.length)
-    {
-        string += '(';
-    }
-    for (let i = 1; i < slot.length; i += 1)
-    {
-        string += `${capitalizeFirst(slot[i].rune)} ${slot[i].wax}`;
-        if (i + 1 < slot.length)
-        {
-            string += ', ';
-        }
-    }
-    if (1 < slot.length)
-    {
-        string += ')';
-    }
-    return string;
-}//Converts array of rune and wax into string
+const Alts = require('./alts');
+const Printing = require('./printing');
+const GrandExchange = require('./grand-exchange');
+const RuneGoldberg = require('./rune-goldberg');
 
 function parseMessage(message)
 {
@@ -118,150 +24,22 @@ function parseMessage(message)
         {
             throw new Error('Invalid Format - Are you missing any commas or spaces?');
         }
+        const wax = parseInt(components[1], 10);
+        if (Number.isNaN(wax))
+        {
+            throw new Error('Invalid Format - Did you mistype an amount of wax?');
+        }
         return {
             rune: components[0].toLowerCase(),
-            wax: components[1],
+            wax,
         };
     }));//Splits multiline string into array of rows of comma seperated values, splits the comma seperated values into values, splits the values into 2 parts, rune and wax
     return parsedValues;
 }
 
-function calculateAlts(parsedData, data)
-{
-    let computedData;
-
-    computedData = parsedData.map((row) => row.map((item) =>
-    {
-        if (null == data[item.rune])
-        {
-            throw new Error('Invalid Format - Did you misspell a rune?');
-        }
-        //eslint-disable-next-line no-param-reassign
-        item.profit = item.wax * data.wax.price - data[item.rune].price * data[item.rune].quantity;
-        //eslint-disable-next-line no-param-reassign
-        item.ironProfit = item.wax * data.wax.price - data[item.rune].ironPrice * data[item.rune].quantity;
-        return item;
-    }));//Calculates profit for given rune and quantity
-
-    //const mainRunes = [computedData[0][0], null, computedData[1][0], computedData[2][0], computedData[3][0]];//The runes for optimal number of wax, The null is in the spot for a secondary main rune
-
-    computedData = computedData.map((row) => row.sort((component1, component2) =>
-    {
-        if (component1.ironProfit > component2.ironProfit)
-        {
-            return -1;
-        }
-        if (component1.ironProfit < component2.ironProfit)
-        {
-            return 1;
-        }
-        return 0;
-    }));//Sorts each row by ironman profit
-
-    const ironAlts = [computedData[0][0], null, computedData[1][0], computedData[2][0], computedData[3][0]];//The runes for optimal amount of gold for ironmen
-    let secondSlotBetterCounter = 0;//Counts how many times second slot overrides 1
-    for (let slot = 1; 4 > slot; slot += 1)
-    {
-        if (computedData[0][0].rune === computedData[slot][0].rune)
-        {
-            if (1 < computedData[slot].length && (2 > computedData[0].length || computedData[0][1].ironProfit - computedData[0][0].ironProfit < computedData[slot][1].ironProfit - computedData[slot][0].ironProfit))
-            {
-                ironAlts[slot + 1] = computedData[slot][1];
-            }//If first slot switching loses more profit or there is no alternate first slot and there is alternate second slot use secondary second slot
-            else if (1 < computedData[0].length)
-            {
-                ironAlts[1] = computedData[0][1];
-                secondSlotBetterCounter += 1;
-            }//If second switching loses more profit and there is alternate first slot add alternate first slot
-        }//If conflicting rune
-    }//Checks for conflicts
-
-    if (3 === secondSlotBetterCounter)
-    {
-        ironAlts[0] = computedData[0][1];
-        ironAlts[1] = null;
-    }//If second slot has a better rune than the first for all 3, move the first slot to its alternate
-
-    computedData = computedData.map((row) => row.sort((component1, component2) =>
-    {
-        if (component1.profit > component2.profit)
-        {
-            return -1;
-        }
-        if (component1.profit < component2.profit)
-        {
-            return 1;
-        }
-        return 0;
-    }));//Sorts each row by profit
-
-    const alts = [computedData[0][0], null, computedData[1][0], computedData[2][0], computedData[3][0]];//The runes for optimal amount of gold
-    secondSlotBetterCounter = 0;//Counts how many times second slot overrides 1
-    for (let slot = 1; 4 > slot; slot += 1)
-    {
-        if (computedData[0][0].rune === computedData[slot][0].rune)
-        {
-            if (1 < computedData[slot].length && (2 > computedData[0].length || computedData[0][1].profit - computedData[0][0].profit < computedData[slot][1].profit - computedData[slot][0].profit))
-            {
-                alts[slot + 1] = computedData[slot][1];
-            }//If first slot switching loses more profit and there is alternate second slot use secondary second slot
-            else if (1 < computedData[0].length)
-            {
-                alts[1] = computedData[0][1];
-                secondSlotBetterCounter += 1;
-            }//If second switching loses more profit and there is alternate first slot add alternate first slot
-        }//If conflicting rune
-    }//Checks for conflicts
-
-    if (3 === secondSlotBetterCounter)
-    {
-        alts[0] = computedData[0][1];
-        alts[1] = null;
-    }//If second slot has a better rune than the first for all 3, move the first slot to its alternate
-
-    computedData = computedData.map((row) =>
-    {
-        let maxWaxRune = row[0];
-        row.forEach((item) =>
-        {
-            if (item.wax > maxWaxRune.wax)
-            {
-                maxWaxRune = item;
-            }
-        });
-        row.sort((component1, component2) =>
-        {
-            if (component1.profit > component2.profit)
-            {
-                return -1;
-            }
-            if (component1.profit < component2.profit)
-            {
-                return 1;
-            }
-            return 0;
-        });
-        row.unshift(maxWaxRune);
-        return row;
-    });//Sorts each row by main rune then profit
-
-    const date = new Date().toLocaleDateString(
-        'en-US',
-        {
-            timeZone: 'UTC',
-            month: 'short',
-            day: '2-digit',
-            year: 'numeric',
-        },
-    );//Gets current date
-
-    const responseMessage = `${date}\nSlot 1:\n\t${printSlot(computedData[0])}\nSlot 2:\n\t${printSlot(computedData[1])}\n\t${printSlot(computedData[2])}\n\t${printSlot(computedData[3])}\nAlts: ${capitalizeFirst(alts[0].rune)}${null != alts[1] ? `/${capitalizeFirst(alts[1].rune)}` : ''} ${capitalizeFirst(alts[2].rune)} ${capitalizeFirst(alts[3].rune)} ${capitalizeFirst(alts[4].rune)} \nIron Alts: ${capitalizeFirst(ironAlts[0].rune)}${null != ironAlts[1] ? `/${capitalizeFirst(ironAlts[1].rune)}` : ''} ${capitalizeFirst(ironAlts[2].rune)} ${capitalizeFirst(ironAlts[3].rune)} ${capitalizeFirst(ironAlts[4].rune)} `;//Creates readable version of alts
-    return responseMessage;
-}
-
 async function runBot()
 {
-    const bot = new discord.Client();
+    const bot = new discord.Client({ intents: [discord.GatewayIntentBits.MessageContent, discord.GatewayIntentBits.GuildMessages, discord.GatewayIntentBits.Guilds] });
     bot.on(
         'ready',
         () =>
@@ -295,7 +73,7 @@ async function runBot()
             }//Return if nothing parsed
 
 
-            const data = await fetchGEPrices();
+            const data = await GrandExchange.fetchGEPrices();
             if (null == data)
             {
                 message.channel.send('Unable to reach GE Server');
@@ -304,7 +82,8 @@ async function runBot()
 
             try
             {
-                message.channel.send(calculateAlts(parsedValues, data));
+                const { computedData, alts, ironAlts } = Alts.calculateAlts(parsedValues, data);
+                message.channel.send(Printing.createMessage(computedData, alts, ironAlts));
             }//Calculate alts and send as message
             catch (error)
             {
@@ -313,6 +92,34 @@ async function runBot()
         },
     );//Message handler
 
+
+    bot.on(discord.Events.InteractionCreate, async (interaction) =>
+    {
+        try
+        {
+        //If not a slash command
+            if (!interaction.isChatInputCommand())
+            {
+                return;
+            }
+
+            if ('calculate_all_alts' === interaction.commandName)
+            {
+                await interaction.deferReply();
+                const data = await GrandExchange.fetchGEPrices();
+                const parsedValues = RuneGoldberg.parseAllRunes();
+                const { computedData, alts, ironAlts } = Alts.calculateAlts(parsedValues, data);
+                await interaction.editReply(Printing.createMessage(computedData, alts, ironAlts, true));
+            }
+        }
+        catch (error)
+        {
+            console.log('Unable to Handle Interaction');
+            console.log(error);
+            process.exit();
+        }
+    });//On interaction with bot
+
     try
     {
         await bot.login(auth.token);
@@ -320,7 +127,22 @@ async function runBot()
     catch (error)
     {
         console.log('Invalid Login Token');
+        console.log(error);
         process.exit();
     }//Establishes connection to Discord Servers
+
+    try
+    {
+        await new discord.REST().setToken(auth.token).put(
+            discord.Routes.applicationGuildCommands(auth.clientId, '621875889126375424'),
+            { body: [new discord.SlashCommandBuilder().setName('calculate_all_alts').setDescription('calculate alts for all runes.').toJSON()] },
+        );
+    }
+    catch (error)
+    {
+        console.log('Unable to register slash command');
+        console.log(error);
+        process.exit();
+    }
 }//Async wrapper allows use of await within main body of code
 runBot();

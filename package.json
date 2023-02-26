@@ -4,7 +4,7 @@
   "main": "bot.js",
   "dependencies": {
     "async": "^3.2.0",
-    "discord.js": "^11.6.2",
+    "discord.js": "^14.7.1",
     "lodash": "^4.17.19",
     "request": "^2.88.2"
   },
@@ -16,8 +16,9 @@
     "pm2": "^4.2.3"
   },
   "scripts": {
-    "start": "./node_modules/.bin/nodemon --inspect-brk ./bot.js",
-    "lint": "./node_modules/.bin/eslint ."
+    "start": "node ./bot.js",
+    "nodemon": "nodemon --inspect-brk ./bot.js",
+    "lint": "eslint ."
   },
   "author": "Dustin Hengel",
   "license": "ISC",
