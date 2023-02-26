@@ -39,7 +39,7 @@ function parseMessage(message)
 
 async function runBot()
 {
-    const bot = new discord.Client({ intents: [discord.GatewayIntentBits.MessageContent, discord.GatewayIntentBits.GuildMessages, discord.GatewayIntentBits.Guilds] });
+    const bot = new discord.Client({ intents: []});
     bot.on(
         'ready',
         () =>
