@@ -66,7 +66,7 @@ module.exports = class Bot
         {
         //Register Slash commands
             const botREST = new Discord.REST().setToken(auth.token);
-            botREST.put(Discord.Routes.applicationGuildCommands(auth.clientId, auth.guildId),
+            botREST.put(Discord.Routes.applicationCommands(auth.clientId),
                 { body: Commands.registrationArray() });
             console.log('Slash Commands Initialized');
         }
