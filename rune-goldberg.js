@@ -12,7 +12,7 @@ const MAGIC2 = 0x5;
 
 const slot2params = [[2, -2], [3, -1], [4, 2]];
 
-const RUNES = ['Air', 'Water', 'Earth', 'Fire', 'Dust', 'Lava', 'Mist', 'Mud', 'Smoke', 'Steam', 'Mind', 'Body', 'Cosmic', 'Chaos', 'Nature', 'Law', 'Death', 'Astral', 'Blood', 'Soul'];
+const RUNES = ['air', 'water', 'earth', 'fire', 'dust', 'lava', 'mist', 'mud', 'smoke', 'steam', 'mind', 'body', 'cosmic', 'chaos', 'nature', 'law', 'death', 'astral', 'blood', 'soul'];
 
 module.exports = class RuneGoldberg
 {
@@ -56,15 +56,13 @@ module.exports = class RuneGoldberg
         return this;
     }
 
-    //Calculates Runedate as Integer
-    static calculateRunedate(date)
-    {
-        const UTC = date.getTime() / 1000;
-        const startUTC = new Date('2002-02-27T00:00:00.000+00:00').getTime() / 1000;
-        return Math.floor((UTC - startUTC) / 86400);
-    }
-
     //Credit to Cook#2222 for Method
+    /**
+     * Calculates the values for every rune for the given runedate
+     * @param {Integer} runedate Runedate to calculate Rune Goldberg values for
+     * @returns {Array.<Array.Integer>>} Returns array of array of integers. Outer array contains values for slot 1, slot 2a, slot 2b, slot 2c.
+     * Each inner array contains the number of wax for the rune in the same corresponding order as the RUNES constant
+     */
     static computeForRunedate(runedate)
     {
         const NUM_BEST_OPTIONS = 19;
@@ -115,18 +113,35 @@ module.exports = class RuneGoldberg
         return [slot1scores, slot2scores[0], slot2scores[1], slot2scores[2]];
     }
 
-    //Generate Array of Arrays containing objects with rune and wax fields
-    //Outer array contains Slot 1, Slot 2a, Slot 2b, Slot 2c values
-    static parseAllRunes()
+    /**
+     * Calculates Runedate from Date
+     * @param {Date} date Date to be converted to Runedate
+     * @returns {Integer} Number of days since 2-27-02
+     */
+    static calculateRunedate(date)
     {
-        const scores = this.computeForRunedate(this.calculateRunedate(new Date()));
+        const UTC = date.getTime() / 1000;
+        const startUTC = new Date('2002-02-27T00:00:00.000+00:00').getTime() / 1000;
+        return Math.floor((UTC - startUTC) / 86400);
+    }
+
+    /**
+     * Calcuculates RuneValues for each slot for date
+     * @param {Integer=0} runedateOffset Number of days offset from today to generate RuneValues for
+     * @returns {Array.<Array.<RuneWaxAmount>>} Representing RuneValues in Slot 1, Slot 2a, Slot 2b, Slot 2c
+     */
+    static parseAllRunes(runedateOffset = 0)
+    {
+        const date = new Date();
+        date.setDate(date.getDate() + runedateOffset);
+        const scores = this.computeForRunedate(this.calculateRunedate(date));
         const parsedValues = [[], [], [], []];
         for (let slot = 0; 4 > slot; slot += 1)
         {
             for (let runeIndex = 0; runeIndex < RUNES.length; runeIndex += 1)
             {
                 parsedValues[slot].push({
-                    rune: RUNES[runeIndex].toLowerCase(),
+                    rune: RUNES[runeIndex],
                     wax: scores[slot][runeIndex],
                 });
             }

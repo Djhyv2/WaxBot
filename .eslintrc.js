@@ -2,6 +2,7 @@ module.exports = {
   env: {
     es6: true,
     node: true,
+    jest: true,
   },
   extends: [
     'airbnb-base',
@@ -20,8 +21,8 @@ module.exports = {
     "max-len": [0],//No max line length
     "indent": [1,4],//Use 4 spaces for a tab
     "spaced-comment": [1,"never"],//Makes comments adjacent to // or /*
-    "no-continue": [0],//Allows continue statements
     "no-console": [0],//Allows console statements
     "prefer-destructuring": [0],//Does not prefer array destructuring
+    "no-param-reassign": [0],//Allows Parameter reassignment
   },
 };

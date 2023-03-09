@@ -1,0 +1,102 @@
+{
+    "air": {
+        "goldbergQuantity": 1000,
+        "ironPrice": 17,
+        "itemId": 556
+    },
+    "water": {
+        "goldbergQuantity": 1000,
+        "ironPrice": 17,
+        "itemId": 555
+    },
+    "earth": {
+        "goldbergQuantity": 1000,
+        "ironPrice": 17,
+        "itemId": 557
+    },
+    "fire": {
+        "goldbergQuantity": 1000,
+        "ironPrice": 17,
+        "itemId": 554
+    },
+    "dust": {
+        "goldbergQuantity": 500,
+        "ironPrice": 1000000,
+        "itemId": 4696
+    },
+    "lava": {
+        "goldbergQuantity": 500,
+        "ironPrice": 1000000,
+        "itemId": 4699
+    },
+    "mist": {
+        "goldbergQuantity": 500,
+        "ironPrice": 1000000,
+        "itemId": 4695
+    },
+    "mud": {
+        "goldbergQuantity": 300,
+        "ironPrice": 1000000,
+        "itemId": 4698
+    },
+    "smoke": {
+        "goldbergQuantity": 500,
+        "ironPrice": 1000000,
+        "itemId": 4697
+    },
+    "steam": {
+        "goldbergQuantity": 500,
+        "ironPrice": 1000000,
+        "itemId": 4694
+    },
+    "mind": {
+        "goldbergQuantity": 2000,
+        "ironPrice": 17,
+        "itemId": 558
+    },
+    "body": {
+        "goldbergQuantity": 2000,
+        "ironPrice": 16,
+        "itemId": 559
+    },
+    "cosmic": {
+        "goldbergQuantity": 400,
+        "ironPrice": 232,
+        "itemId": 564
+    },
+    "chaos": {
+        "goldbergQuantity": 500,
+        "ironPrice": 140,
+        "itemId": 562
+    },
+    "nature": {
+        "goldbergQuantity": 350,
+        "ironPrice": 372,
+        "itemId": 561
+    },
+    "law": {
+        "goldbergQuantity": 300,
+        "ironPrice": 378,
+        "itemId": 563
+    },
+    "death": {
+        "goldbergQuantity": 400,
+        "ironPrice": 310,
+        "itemId": 560
+    },
+    "astral": {
+        "goldbergQuantity": 300,
+        "ironPrice": 220,
+        "itemId": 9075
+    },
+    "blood": {
+        "goldbergQuantity": 350,
+        "ironPrice": 550,
+        "itemId": 565
+    },
+    "soul": {
+        "goldbergQuantity": 300,
+        "ironPrice": 410,
+        "itemId": 566
+    }
+}
