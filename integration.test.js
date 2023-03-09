@@ -1,4 +1,3 @@
-
 const Axios = require('axios');
 const Discord = require('discord.js');
 const Messages = require('./messages');

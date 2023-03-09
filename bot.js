@@ -15,7 +15,6 @@ module.exports = class Bot
 
         bot.once(Discord.Events.ClientReady, () => console.log('Bot Initialized'));
 
-
         bot.on(Discord.Events.InteractionCreate, async (interaction) =>
         {
             try
@@ -66,8 +65,10 @@ module.exports = class Bot
         {
         //Register Slash commands
             const botREST = new Discord.REST().setToken(auth.token);
-            botREST.put(Discord.Routes.applicationCommands(auth.clientId),
-                { body: Commands.registrationArray() });
+            botREST.put(
+                Discord.Routes.applicationCommands(auth.clientId),
+                { body: Commands.registrationArray() },
+            );
             console.log('Slash Commands Initialized');
         }
         catch (error)
