@@ -14,6 +14,8 @@ const slot2params = [[2, -2], [3, -1], [4, 2]];
 
 const RUNES = ['air', 'water', 'earth', 'fire', 'dust', 'lava', 'mist', 'mud', 'smoke', 'steam', 'mind', 'body', 'cosmic', 'chaos', 'nature', 'law', 'death', 'astral', 'blood', 'soul'];
 
+const runeDate = new Date('2002-02-27T00:00:00.000+00:00');
+
 module.exports = class RuneGoldberg
 {
     //Credit to Cook#2222 for Method
@@ -121,7 +123,7 @@ module.exports = class RuneGoldberg
     static calculateRunedate(date)
     {
         const UTC = date.getTime() / 1000;
-        const startUTC = new Date('2002-02-27T00:00:00.000+00:00').getTime() / 1000;
+        const startUTC = runeDate.getTime() / 1000;
         return Math.floor((UTC - startUTC) / 86400);
     }
 
@@ -134,6 +136,10 @@ module.exports = class RuneGoldberg
     {
         const date = new Date();
         date.setDate(date.getDate() + runedateOffset);
+        if (date.getTime() < runeDate.getTime())
+        {
+            throw new Error('Cannot generate alts prior to February 27, 2002');
+        }
         const scores = this.computeForRunedate(this.calculateRunedate(date));
         const parsedValues = [[], [], [], []];
         for (let slot = 0; 4 > slot; slot += 1)

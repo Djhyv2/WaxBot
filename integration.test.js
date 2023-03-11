@@ -385,6 +385,12 @@ Iron Alts: Fire/Water Water Fire Blood`);
             await Commands.handleSlashCommand(mockInteraction);
             expect(mockInteraction.editReply).toHaveBeenCalledWith('Unable to reach GE Server');
         });
+        test('Error if date before runeDate', async () =>
+        {
+            mockInteraction.options.getInteger.mockReturnValue(-7677);
+            await Commands.handleSlashCommand(mockInteraction);
+            expect(mockInteraction.editReply).toHaveBeenCalledWith('Cannot generate alts prior to February 27, 2002');
+        });
         test('Calculates todays alts by default', async () =>
         {
             await Commands.handleSlashCommand(mockInteraction);
