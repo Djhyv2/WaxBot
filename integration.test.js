@@ -391,6 +391,18 @@ Iron Alts: Fire/Water Water Fire Blood`);
             await Commands.handleSlashCommand(mockInteraction);
             expect(mockInteraction.editReply).toHaveBeenCalledWith('Cannot generate alts prior to February 27, 2002');
         });
+        test('Error if invalid negative date', async () =>
+        {
+            mockInteraction.options.getInteger.mockReturnValue(-1000000000000);
+            await Commands.handleSlashCommand(mockInteraction);
+            expect(mockInteraction.editReply).toHaveBeenCalledWith('Cannot generate alts prior to February 27, 2002');
+        });
+        test('Error if invalid positive date', async () =>
+        {
+            mockInteraction.options.getInteger.mockReturnValue(1000000000000);
+            await Commands.handleSlashCommand(mockInteraction);
+            expect(mockInteraction.editReply).toHaveBeenCalledWith('Cannot generate alts prior to February 27, 2002');
+        });
         test('Calculates todays alts by default', async () =>
         {
             await Commands.handleSlashCommand(mockInteraction);

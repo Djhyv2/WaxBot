@@ -136,7 +136,7 @@ module.exports = class RuneGoldberg
     {
         const date = new Date();
         date.setDate(date.getDate() + runedateOffset);
-        if (date.getTime() < runeDate.getTime())
+        if (date.getTime() < runeDate.getTime() || Number.isNaN(date.getTime()))
         {
             throw new Error('Cannot generate alts prior to February 27, 2002');
         }
