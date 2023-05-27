@@ -7,23 +7,27 @@ module.exports = class Messages
     /**
      * Calculates and Prints Alts for applicable Discord Messages
      * @param {Discord.Message} message Discord Message Object
+     * @param {Array.<Integer>=[]} channelIds Channel Ids to respond to messages in
      */
-    static async handleMessage(message)
+    static async handleMessage(message, channelIds = [])
     {
-        try
+        if (channelIds.includes(message.channel.id) && message.author.id !== message.client.user.id)
         {
-            const parsedMessage = this.parseMessage(message.content);
-            if (parsedMessage)
+            try
             {
-                const {
-                    combination, alts, ironAlts, notableRunes,
-                } = await Alts.calculateAlts(parsedMessage);
-                message.channel.send(Print.generateMessage(combination, alts, ironAlts, notableRunes, message.client.emojis.cache));
+                const parsedMessage = this.parseMessage(message.content);
+                if (parsedMessage)
+                {
+                    const {
+                        combination, alts, ironAlts, notableRunes,
+                    } = await Alts.calculateAlts(parsedMessage);
+                    message.channel.send(Print.generateMessage(combination, alts, ironAlts, notableRunes, message.client.emojis.cache));
+                }
             }
-        }
-        catch (error)
-        {
-            message.channel.send(error.message);
+            catch (error)
+            {
+                message.channel.send(error.message);
+            }
         }
     }
 

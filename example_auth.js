@@ -4,5 +4,7 @@ module.exports = {
     //Discord Bot ClientId provided by Discord
     clientId: '',
     //Array of Numeric ChannelIds to respond to messages in
-    channelIds: [],
+    respondChannelIds: [],
+    //Array of Numeric ChannelIds to post scheduled alts message in
+    postChannelIds: [],
 };

@@ -30,7 +30,7 @@ module.exports = class Commands
      */
     static async handleSlashCommand(interaction)
     {
-        if (commandName === interaction.commandName)
+        if (interaction.isChatInputCommand() && commandName === interaction.commandName)
         {
             try
             {

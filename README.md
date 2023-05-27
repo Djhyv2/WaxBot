@@ -8,7 +8,11 @@ For example, the runes for September 13, 2019 would be input to the bot as follo
 >Fire 30, Air 24, Water 26  
 
 The bot also supports a slash command to calculate the alts for the current date considering all values for all Runes in Slot 1 and Slot 2.
-> /calculate_all_alts
+> /alts
+This command can optionally take an offset parameter that will tell you the alts for a given date offset from today.
+> /alts -1
+
+The bot will also post the alts to configured channels every day at midnight UTC.
 
 ## Configuring the Bot
 

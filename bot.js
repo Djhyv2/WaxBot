@@ -3,6 +3,7 @@ const auth = require('./auth');
 
 const Commands = require('./commands');
 const Messages = require('./messages');
+const Scheduled = require('./scheduled');
 
 module.exports = class Bot
 {
@@ -13,17 +14,26 @@ module.exports = class Bot
     {
         const bot = new Discord.Client({ intents: [Discord.GatewayIntentBits.Guilds, Discord.GatewayIntentBits.GuildMessages, Discord.GatewayIntentBits.MessageContent] });
 
-        bot.once(Discord.Events.ClientReady, () => console.log('Bot Initialized'));
+        bot.once(Discord.Events.ClientReady, () =>
+        {
+            console.log('Bot initialized');
+            try
+            {
+                Scheduled.start(bot, auth.postChannelIds);
+                console.log('Scheduled message initialized');
+            }
+            catch (error)
+            {
+                console.log('Unable to initialize scheduled messages');
+                console.log(error);
+            }
+        });
 
         bot.on(Discord.Events.InteractionCreate, async (interaction) =>
         {
             try
             {
-                //Only handle slash commands
-                if (interaction.isChatInputCommand())
-                {
-                    Commands.handleSlashCommand(interaction);
-                }
+                Commands.handleSlashCommand(interaction);
             }
             catch (error)
             {
@@ -36,11 +46,7 @@ module.exports = class Bot
         {
             try
             {
-                //Only handle message in approved Channels
-                if (auth.channelIds.includes(message.channel.id) && message.author.id !== bot.user.id)
-                {
-                    Messages.handleMessage(message);
-                }
+                Messages.handleMessage(message, auth.respondChannelIds);
             }
             catch (error)
             {
@@ -69,7 +75,7 @@ module.exports = class Bot
                 Discord.Routes.applicationCommands(auth.clientId),
                 { body: Commands.registrationArray() },
             );
-            console.log('Slash Commands Initialized');
+            console.log('Slash commands initialized');
         }
         catch (error)
         {

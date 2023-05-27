@@ -24,5 +24,6 @@ module.exports = {
         'no-console': [0], //Allows console statements
         'prefer-destructuring': [0], //Does not prefer array destructuring
         'no-param-reassign': [0], //Allows Parameter reassignment
+        'no-await-in-loop': [0], //Allows await in loops
     },
 };

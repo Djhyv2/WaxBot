@@ -1,7 +1,9 @@
 const Axios = require('axios');
+const Cron = require('cron');
 const Discord = require('discord.js');
 const Messages = require('./messages');
 const Commands = require('./commands');
+const Scheduled = require('./scheduled');
 
 describe('integration', () =>
 {
@@ -69,9 +71,27 @@ describe('integration', () =>
     describe('Message Input', () =>
     {
         let mockMessage;
+        let channelIds;
         beforeEach(() =>
         {
-            mockMessage = { client: { emojis: { cache: emojiCache } }, channel: { send: jest.fn() } };
+            mockMessage = {
+                client: {
+                    emojis: {
+                        cache: emojiCache,
+                    },
+                    user: {
+                        id: 123,
+                    },
+                },
+                channel: {
+                    send: jest.fn(),
+                    id: 456,
+                },
+                author: {
+                    id: 789,
+                },
+            };
+            channelIds = [456];
         });
 
         describe('Alt Calculations', () =>
@@ -79,7 +99,7 @@ describe('integration', () =>
             test('No conflicting Runes', async () =>
             {
                 mockMessage.content = 'fire 30\nwater 30\nearth 30\nair 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Fire_rune: Fire (Fire 30)
@@ -94,7 +114,7 @@ Iron Alts: Fire Water Earth Air`);
             test('Use 2nd Best Slot 1 for all 3 Slot 2', async () =>
             {
                 mockMessage.content = 'air 30, earth 20\nsteam 30, air 27\nblood 30, air 28\nair 30, mist 29';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Air_rune: Air (Air 30, Earth 20)
@@ -109,7 +129,7 @@ Iron Alts: Air/Earth Air Blood Air`);
             test('Use 2nd Best Slot 1 for some Slot 2', async () =>
             {
                 mockMessage.content = 'air 30, earth 20\nmind 30, air 27\nblood 30, air 28\nair 30, mist 29';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Air_rune: Air (Air 30, Earth 20)
@@ -124,7 +144,7 @@ Iron Alts: Air/Earth Mind Blood Air`);
             test('Use 2nd Best Slot 2 for some Slot 2', async () =>
             {
                 mockMessage.content = 'air 30, earth 20\nmind 30, air 27\nblood 30, air 28\nair 30, earth 25';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Air_rune: Air (Air 30, Earth 20)
@@ -139,7 +159,7 @@ Iron Alts: Air Mind Blood Earth`);
             test('No Alternatives for Slot 1', async () =>
             {
                 mockMessage.content = 'air 30\nmind 30, air 27\nblood 30, air 28\nair 30, earth 25';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Air_rune: Air (Air 30)
@@ -154,7 +174,7 @@ Iron Alts: Air Mind Blood Earth`);
             test('No Alternatives for Slot 2', async () =>
             {
                 mockMessage.content = 'air 30, earth 20\nmind 30\nblood 30\nair 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Air_rune: Air (Air 30, Earth 20)
@@ -169,7 +189,7 @@ Iron Alts: Air/Earth Mind Blood Air`);
             test('Uses shop prices for Ironmen', async () =>
             {
                 mockMessage.content = 'water 30, earth 29\nmud 30, nature 20\nblood 30\nair 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Water_rune: Water (Earth 29, Water 30)
@@ -183,28 +203,42 @@ Iron Alts: Water Nature Blood Air`);
         });
         describe('Error Handling', () =>
         {
+            test('Message to wrong channel', async () =>
+            {
+                mockMessage.content = 'fire 30\nwater 30\nearth 30\nair 30';
+                mockMessage.channel.id = 0;
+                await Messages.handleMessage(mockMessage, channelIds);
+                expect(mockMessage.channel.send).toHaveBeenCalledTimes(0);
+            });
+            test('Message was made by self', async () =>
+            {
+                mockMessage.content = 'fire 30\nwater 30\nearth 30\nair 30';
+                mockMessage.author.id = 123;
+                await Messages.handleMessage(mockMessage, channelIds);
+                expect(mockMessage.channel.send).toHaveBeenCalledTimes(0);
+            });
             test('No Alternatives for Either Slot', async () =>
             {
                 mockMessage.content = 'air 30\nair 30\nair 30, earth 29\nair 30, earth 29';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith('Unable to Calculate Alts - Slot 1 and Slot 2 are the same with no other options');
             });
             test('No Commas', async () =>
             {
                 mockMessage.content = 'water 30 earth 29\nmud 30 nature 20\nblood 30\nair 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith('Invalid Format - Are you missing any commas or spaces?');
             });
             test('No Spaces', async () =>
             {
                 mockMessage.content = 'water30, earth29\nmud 30,nature20\nblood 30\nair 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith('Invalid Format - Are you missing any commas or spaces?');
             });
             test('Extra Spaces', async () =>
             {
                 mockMessage.content = 'water    30, earth 29\nmud 30, nature 20   \nblood 30 \n    air   30 ';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Water_rune: Water (Earth 29, Water 30)
@@ -218,13 +252,13 @@ Iron Alts: Water Nature Blood Air`);
             test('Mispelled Rune', async () =>
             {
                 mockMessage.content = 'wate 30, earth 29\nmud 30,nature 20\nblood 30\nair 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith('Invalid Format - Did you misspell a rune?');
             });
             test('Capitalized Rune', async () =>
             {
                 mockMessage.content = 'WATER 30, earTh 29\nmud 30,nature 20\nblood 30\nair 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Water_rune: Water (Earth 29, Water 30)
@@ -238,39 +272,39 @@ Iron Alts: Water Nature Blood Air`);
             test('Missing Amount', async () =>
             {
                 mockMessage.content = 'water, earth 29\nmud 30,nature 20\nblood 30\nair 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith('Invalid Format - Are you missing any commas or spaces?');
             });
             test('Non Numeric Amount', async () =>
             {
                 mockMessage.content = 'water f, earth 29\nmud 30,nature 20\nblood 30\nair 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith('Invalid Format - Did you mistype an amount of wax?');
             });
             test('Message Less than 4 Lines', async () =>
             {
                 mockMessage.content = 'water 30, earth 29\nmud 30,nature 20\nblood 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledTimes(0);
             });
             test('Message More than 4 Lines', async () =>
             {
                 mockMessage.content = 'water 30, earth 29\nmud 30,nature 20\nblood 30\nair 30\nmist 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledTimes(0);
             });
             test('Unable to fetch Rune prices', async () =>
             {
                 mockMessage.content = 'water 30, earth 29\nmud 30,nature 20\nblood 30\nair 30';
                 Axios.get.mockReset().mockRejectedValue(new Error('Unable to fetch prices'));
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith('Unable to reach GE Server');
             });
             test('Unable to fetch Wax prices', async () =>
             {
                 mockMessage.content = 'water 30, earth 29\nmud 30,nature 20\nblood 30\nair 30';
                 Axios.get.mockReset().mockReturnValueOnce(runePrices).mockRejectedValue(new Error('Unable to fetch prices'));
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith('Unable to reach GE Server');
             });
         });
@@ -279,7 +313,7 @@ Iron Alts: Water Nature Blood Air`);
             test('Iron Alt is Primary Rune', async () =>
             {
                 mockMessage.content = 'water 30, lava 29, mist 28, mud 27, steam 26, smoke 25, dust 24\nnature 30\nastral 30\nblood 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Water_rune: Water (Water 30, Lava 29, Smoke 25, Mud 27)
@@ -293,7 +327,7 @@ Iron Alts: Water Nature Astral Blood`);
             test('Iron Alt is in Top 3 Alts', async () =>
             {
                 mockMessage.content = 'lava 30, mist 27, mud 26, steam 25, smoke 24, dust 23, water 29, fire 28\nnature 30\nastral 30\nblood 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Lava_rune: Lava (Fire 28, Water 29, Lava 30, Smoke 24)
@@ -307,7 +341,7 @@ Iron Alts: Water Nature Astral Blood`);
             test('Iron Alt is not Primary or Top 2 Alt', async () =>
             {
                 mockMessage.content = 'mist 30, water 29, fire 28, law 27, chaos 26, body 25, mind 24, earth 23, air 22\nnature 30\nastral 30\nblood 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Mist_rune: Mist (Law 27, Body 25, Water 29, Mist 30)
@@ -321,7 +355,7 @@ Iron Alts: Water Nature Astral Blood`);
             test('5 Runes displayed when multiple Iron Alts not Primary or Top 2 Alts', async () =>
             {
                 mockMessage.content = 'mist 30, water 29, fire 28, law 27, chaos 26, body 25, mind 24, earth 23, air 22\nwater 30\nastral 30\nblood 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Mist_rune: Mist (Law 27, Body 25, Fire 28, Water 29, Mist 30)
@@ -335,7 +369,7 @@ Iron Alts: Water/Fire Water Astral Blood`);
             test('Multiple Iron Alts One is Primary', async () =>
             {
                 mockMessage.content = 'water 30, fire 28, law 27, chaos 26, body 25, mind 24, earth 23, air 22\nwater 30\nastral 30\nblood 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Water_rune: Water (Law 27, Body 25, Fire 28, Water 30)
@@ -349,7 +383,7 @@ Iron Alts: Water/Fire Water Astral Blood`);
             test('Multiple Iron Alts One is Top 2 Alt', async () =>
             {
                 mockMessage.content = 'mist 30, lava 29, fire 3, astral 2, water 1\nwater 30\nfire 30\nblood 30';
-                await Messages.handleMessage(mockMessage);
+                await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
     :Mist_rune: Mist (Lava 29, Fire 3, Water 1, Mist 30)
@@ -369,9 +403,21 @@ Iron Alts: Fire/Water Water Fire Blood`);
         beforeEach(() =>
         {
             mockInteraction = {
-                commandName: 'alts', deferReply: jest.fn(), options: { getInteger: jest.fn() }, client: { emojis: { cache: emojiCache } }, editReply: jest.fn(),
+                commandName: 'alts',
+                deferReply: jest.fn(),
+                options: { getInteger: jest.fn() },
+                client: { emojis: { cache: emojiCache } },
+                editReply: jest.fn(),
+                isChatInputCommand: jest.fn(),
             };
             mockInteraction.options.getInteger.mockReturnValue(null);
+            mockInteraction.isChatInputCommand.mockReturnValue(true);
+        });
+        test('Not a Slash Command', async () =>
+        {
+            mockInteraction.isChatInputCommand.mockReturnValue(false);
+            await Commands.handleSlashCommand(mockInteraction);
+            expect(mockInteraction.editReply).toHaveBeenCalledTimes(0);
         });
         test('Invalid Slash Command', async () =>
         {
@@ -443,6 +489,89 @@ Slot 2:
     :Steam_rune: Steam (Mind 29, Cosmic 21, Water 23, Steam 30)
 Alts: Law Mind Air Mind
 Iron Alts: Body Mind Water Mind`);
+        });
+    });
+
+    describe('Scheduled Message', () =>
+    {
+        let channelIds;
+        let client;
+        let mockSend;
+        let mockMessage;
+        let cronStart;
+        beforeEach(() =>
+        {
+            channelIds = [123];
+            mockSend = jest.fn();
+            client = {
+                channels: {
+                    cache: new Discord.Collection(new Map([
+                        [123, { send: mockSend }], [456, { send: mockSend }]])),
+                },
+                emojis: {
+                    cache: emojiCache,
+                },
+            };
+            mockMessage = { crosspost: jest.fn() };
+            mockMessage.crosspost.mockResolvedValue();
+            mockSend.mockResolvedValue(mockMessage);
+            cronStart = jest.fn();
+            Cron.CronJob = jest.fn().mockReturnValue({ start: cronStart });
+        });
+        test('Schedules Cron for Midnight UTC', () =>
+        {
+            Scheduled.start(client, channelIds);
+            expect(Cron.CronJob.mock.calls[0][0]).toEqual('0 0 * * *');
+            expect(Cron.CronJob.mock.calls[0][4]).toEqual('UTC');
+            expect(cronStart).toHaveBeenCalledTimes(1);
+        });
+        test('Error during Alt Calculation', async () =>
+        {
+            Axios.get.mockReset().mockRejectedValue(new Error('Unable to fetch prices'));
+            Scheduled.start(client, channelIds);
+            await Cron.CronJob.mock.calls[0][1]();
+            expect(mockSend).toHaveBeenCalledWith('Unable to reach GE Server');
+        });
+        test('Error during announcement publish', async () =>
+        {
+            mockMessage.crosspost.mockReset().mockRejectedValue('Error');
+            Scheduled.start(client, channelIds);
+            await Cron.CronJob.mock.calls[0][1]();
+            expect(mockSend).toHaveBeenCalledWith(`Mar 05, 2023
+Slot 1:
+    :Death_rune: Death (Death 30, Chaos 24, Astral 27)
+Slot 2:
+    :Lava_rune: Lava (Law 26, Death 27, Body 22, Lava 30)
+    :Astral_rune: Astral (Chaos 28, Astral 30, Mind 18, Law 17)
+    :Chaos_rune: Chaos (Chaos 30, Mind 25, Law 27, Water 26)
+Alts: Death Law Chaos Chaos
+Iron Alts: Death/Astral Death Astral Chaos`);
+            await expect(Cron.CronJob.mock.calls[0][1]()).resolves;
+        });
+        test('Posts announcement to each channel', async () =>
+        {
+            channelIds = [123, 456];
+            Scheduled.start(client, channelIds);
+            await Cron.CronJob.mock.calls[0][1]();
+            expect(mockSend).toHaveBeenCalledWith(`Mar 05, 2023
+Slot 1:
+    :Death_rune: Death (Death 30, Chaos 24, Astral 27)
+Slot 2:
+    :Lava_rune: Lava (Law 26, Death 27, Body 22, Lava 30)
+    :Astral_rune: Astral (Chaos 28, Astral 30, Mind 18, Law 17)
+    :Chaos_rune: Chaos (Chaos 30, Mind 25, Law 27, Water 26)
+Alts: Death Law Chaos Chaos
+Iron Alts: Death/Astral Death Astral Chaos`);
+            expect(mockSend).toHaveBeenCalledTimes(2);
+            expect(mockMessage.crosspost).toHaveBeenCalledTimes(2);
+        });
+        test('When no channels to post to', async () =>
+        {
+            channelIds = [];
+            Scheduled.start(client, channelIds);
+            await Cron.CronJob.mock.calls[0][1]();
+            expect(mockSend).toHaveBeenCalledTimes(0);
+            await expect(Cron.CronJob.mock.calls[0][1]()).resolves;
         });
     });
 });
