@@ -12,7 +12,7 @@ The bot also supports a slash command to calculate the alts for the current date
 This command can optionally take an offset parameter that will tell you the alts for a given date offset from today.
 > /alts -1
 
-The bot will also post the alts to configured channels every day at midnight UTC.
+The bot will also post the alts to configured channels every day at midnight UTC and delete prior messages by the bot. If the bot has permissions and is posting to an announcement channel, it will publish the mssage.
 
 ## Configuring the Bot
 

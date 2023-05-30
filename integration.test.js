@@ -495,47 +495,51 @@ Iron Alts: Body Mind Water Mind`);
     describe('Scheduled Message', () =>
     {
         let channelIds;
-        let client;
+        let emojis;
+        let channels;
+        let botId;
+        let mockCronStart;
         let mockSend;
-        let mockMessage;
-        let cronStart;
+        let mockPostedMessage;
+        let mockFetchedMessages;
+        let mockDelete;
+        let mockFetch;
         beforeEach(() =>
         {
-            channelIds = [123];
+            mockCronStart = jest.fn();
+            Cron.CronJob = jest.fn().mockReturnValue({ start: mockCronStart });
             mockSend = jest.fn();
-            client = {
-                channels: {
-                    cache: new Discord.Collection(new Map([
-                        [123, { send: mockSend }], [456, { send: mockSend }]])),
-                },
-                emojis: {
-                    cache: emojiCache,
-                },
-            };
-            mockMessage = { crosspost: jest.fn() };
-            mockMessage.crosspost.mockResolvedValue();
-            mockSend.mockResolvedValue(mockMessage);
-            cronStart = jest.fn();
-            Cron.CronJob = jest.fn().mockReturnValue({ start: cronStart });
+            mockPostedMessage = { crosspost: jest.fn() };
+            mockSend.mockResolvedValue(mockPostedMessage);
+            mockPostedMessage.crosspost.mockResolvedValue();
+            mockFetch = jest.fn();
+            mockDelete = jest.fn();
+            mockFetchedMessages = new Discord.Collection(new Map([[1, { author: { id: 111 }, delete: mockDelete }], [2, { author: { id: 111 }, delete: mockDelete }]]));
+            mockFetch.mockResolvedValue(mockFetchedMessages);
+            channels = new Discord.Collection(new Map([
+                [123, { send: mockSend, messages: { fetch: mockFetch } }], [456, { send: mockSend, messages: { fetch: mockFetch } }]]));
+            emojis = emojiCache;
+            channelIds = [123];
+            botId = 111;
         });
         test('Schedules Cron for Midnight UTC', () =>
         {
-            Scheduled.start(client, channelIds);
+            Scheduled.start(emojis, channels, botId, channelIds);
             expect(Cron.CronJob.mock.calls[0][0]).toEqual('0 0 * * *');
             expect(Cron.CronJob.mock.calls[0][4]).toEqual('UTC');
-            expect(cronStart).toHaveBeenCalledTimes(1);
+            expect(mockCronStart).toHaveBeenCalledTimes(1);
         });
         test('Error during Alt Calculation', async () =>
         {
             Axios.get.mockReset().mockRejectedValue(new Error('Unable to fetch prices'));
-            Scheduled.start(client, channelIds);
+            Scheduled.start(emojis, channels, botId, channelIds);
             await Cron.CronJob.mock.calls[0][1]();
             expect(mockSend).toHaveBeenCalledWith('Unable to reach GE Server');
         });
         test('Error during announcement publish', async () =>
         {
-            mockMessage.crosspost.mockReset().mockRejectedValue('Error');
-            Scheduled.start(client, channelIds);
+            mockPostedMessage.crosspost.mockReset().mockRejectedValue('Error');
+            Scheduled.start(emojis, channels, botId, channelIds);
             await Cron.CronJob.mock.calls[0][1]();
             expect(mockSend).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
@@ -551,7 +555,7 @@ Iron Alts: Death/Astral Death Astral Chaos`);
         test('Posts announcement to each channel', async () =>
         {
             channelIds = [123, 456];
-            Scheduled.start(client, channelIds);
+            Scheduled.start(emojis, channels, botId, channelIds);
             await Cron.CronJob.mock.calls[0][1]();
             expect(mockSend).toHaveBeenCalledWith(`Mar 05, 2023
 Slot 1:
@@ -563,15 +567,38 @@ Slot 2:
 Alts: Death Law Chaos Chaos
 Iron Alts: Death/Astral Death Astral Chaos`);
             expect(mockSend).toHaveBeenCalledTimes(2);
-            expect(mockMessage.crosspost).toHaveBeenCalledTimes(2);
+            expect(mockPostedMessage.crosspost).toHaveBeenCalledTimes(2);
         });
         test('When no channels to post to', async () =>
         {
             channelIds = [];
-            Scheduled.start(client, channelIds);
+            Scheduled.start(emojis, channels, botId, channelIds);
             await Cron.CronJob.mock.calls[0][1]();
             expect(mockSend).toHaveBeenCalledTimes(0);
             await expect(Cron.CronJob.mock.calls[0][1]()).resolves;
+        });
+        test('Deletes previous messages', async () =>
+        {
+            Scheduled.start(emojis, channels, botId, channelIds);
+            await Cron.CronJob.mock.calls[0][1]();
+            expect(mockDelete).toHaveBeenCalledTimes(2);
+        });
+        test('Deletes previous messages from each channel', async () =>
+        {
+            const mockFetchedMessages2 = new Discord.Collection(new Map([[1, { author: { id: 111 }, delete: mockDelete }]]));
+            mockFetch.mockReset().mockResolvedValueOnce(mockFetchedMessages).mockResolvedValueOnce(mockFetchedMessages2);
+            channelIds = [123, 456];
+            Scheduled.start(emojis, channels, botId, channelIds);
+            await Cron.CronJob.mock.calls[0][1]();
+            expect(mockDelete).toHaveBeenCalledTimes(3);
+        });
+        test('Does not delete messages from other authors', async () =>
+        {
+            mockFetchedMessages = new Discord.Collection(new Map([[1, { author: { id: 110 }, delete: mockDelete }]]));
+            mockFetch.mockReset().mockResolvedValue(mockFetchedMessages);
+            Scheduled.start(emojis, channels, botId, channelIds);
+            await Cron.CronJob.mock.calls[0][1]();
+            expect(mockDelete).toHaveBeenCalledTimes(0);
         });
     });
 });

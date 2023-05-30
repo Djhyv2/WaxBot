@@ -19,7 +19,7 @@ module.exports = class Bot
             console.log('Bot initialized');
             try
             {
-                Scheduled.start(bot, auth.postChannelIds);
+                Scheduled.start(bot.emojis.cache, bot.channels.cache, bot.user.id, auth.postChannelIds);
                 console.log('Scheduled message initialized');
             }
             catch (error)
