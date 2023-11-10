@@ -300,6 +300,13 @@ Iron Alts: Water Nature Blood Air`);
                 await Messages.handleMessage(mockMessage, channelIds);
                 expect(mockMessage.channel.send).toHaveBeenCalledWith('Unable to reach GE Server');
             });
+            test('Unable to fetch Rune prices', async () =>
+            {
+                mockMessage.content = 'water 30, earth 29\nmud 30,nature 20\nblood 30\nair 30';
+                Axios.get.mockReset().mockResolvedValue({ data: { success: false, error: 'An Error Message' } });
+                await Messages.handleMessage(mockMessage, channelIds);
+                expect(mockMessage.channel.send).toHaveBeenCalledWith('Unable to reach GE Server');
+            });
             test('Unable to fetch Wax prices', async () =>
             {
                 mockMessage.content = 'water 30, earth 29\nmud 30,nature 20\nblood 30\nair 30';

@@ -23,6 +23,10 @@ module.exports = class itemData
         try
         {
             const weirdGloopResponse = await Axios.get('https://api.weirdgloop.org/exchange/history/rs/latest', { params: { id: itemIds.join('|') } });
+            if (false === weirdGloopResponse.data.success)
+            {
+                throw weirdGloopResponse.data.error;
+            }
             weirdGloopResponseData = weirdGloopResponse.data;
         }
         catch (error)
