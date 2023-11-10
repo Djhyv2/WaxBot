@@ -89,14 +89,14 @@
         "ironPrice": 220,
         "itemId": 9075
     },
-    "blood": {
-        "goldbergQuantity": 350,
-        "ironPrice": 550,
-        "itemId": 565
-    },
     "soul": {
         "goldbergQuantity": 300,
         "ironPrice": 410,
         "itemId": 566
+    },
+    "blood": {
+        "goldbergQuantity": 350,
+        "ironPrice": 550,
+        "itemId": 565
     }
 }
