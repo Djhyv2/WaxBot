@@ -2,3 +2,4 @@ node_modules
 coverage
 auth.js
 ssh
+*.log

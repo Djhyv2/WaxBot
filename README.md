@@ -26,11 +26,26 @@ Run the following commands after configuring the bot.
 > npm i
 > npm run start
 
+
+### Running the Bot in Production
+
+Run the following commands to start the bot such that it will restart once daily, after crashes, and after any system restart.
+> npm i
+> npm run start-prod
+
 ## Tests
 
 Run the following commands
 > npm i
 > npm run test
+
+## Lint
+
+Run the following commands
+> npm i
+> npm run lint
+Optionally to auto-correct linting
+> npm run lint -- --fix
 
 # Credit
 
