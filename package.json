@@ -21,7 +21,7 @@
     "start": "node ./start.js",
     "lint": "./node_modules/.bin/eslint .",
     "test": "jest",
-    "start-prod": "./node_modules/.bin/pm2 delete all && ./node_modules/.bin/pm2 start pm2-config.js && ./node_modules/.bin/pm2 save && ./node_modules/.bin/pm2 startup"
+    "start-prod": "./node_modules/.bin/pm2 delete all && ./node_modules/.bin/pm2 start pm2.config.js && ./node_modules/.bin/pm2 save && ./node_modules/.bin/pm2 startup"
   },
   "author": "Dustin Hengel",
   "license": "ISC",
