@@ -23,29 +23,30 @@ A bot must be created from the Discord Developer Portal in order to acquire a to
 ## Running the Bot
 
 Run the following commands after configuring the bot.
-> npm i
-> npm run start
+>npm i  
+>npm run start  
 
 
 ### Running the Bot in Production
 
 Run the following commands to start the bot such that it will restart once daily, after crashes, and after any system restart.
-> npm i
-> npm run start-prod
+> npm i  
+> npm run start-prod  
 
 ## Tests
 
 Run the following commands
-> npm i
-> npm run test
+> npm i  
+> npm run test  
 
 ## Lint
 
 Run the following commands
-> npm i
+> npm i  
 > npm run lint
+
 Optionally to auto-correct linting
-> npm run lint -- --fix
+> npm run lint -- --fix  
 
 # Credit
 
@@ -54,4 +55,3 @@ Credit to Cook#2222 on Discord/ /u/cookmeplox on Reddit for Discovering the Rune
 Credit to doge#2526 on Discord for making the waxy boy bot which inspired Wax Bot
 
 Credit to Sir Azder#8638 on Discord / /u/KhalRS3 on Reddit for designing the Vis Wax Logo
-
