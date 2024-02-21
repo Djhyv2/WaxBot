@@ -55,3 +55,27 @@ Credit to Cook#2222 on Discord/ /u/cookmeplox on Reddit for Discovering the Rune
 Credit to doge#2526 on Discord for making the waxy boy bot which inspired Wax Bot
 
 Credit to Sir Azder#8638 on Discord / /u/KhalRS3 on Reddit for designing the Vis Wax Logo
+
+# Required Documents
+
+## Terms of Service
+
+Wax Bot is a Discord Bot that calculates optimal profit of crafting Vis Wax in the online game Runescape  
+Copyright (C) 2019 Dustin Hengel
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but without any warranty; without even the implied warranty of merchantability or fitness for a particular purpose. See the GNU General Public License for more details.
+
+See https://www.gnu.org/licenses/.
+
+As a user with Manage Server permissions on a Discord Server, by adding the Wax Bot to your server, you agree to the Privacy Policy.
+
+## Privacy Policy
+
+The deployed instance of Wax Bot managed and owned by the "Vis Wax!" Discord Server has permission to read all messages sent in all Discord Servers the bot is a member in.  
+The Wax Bot reads and processes all chat messages sent to the following channels:  
+* #secretwaxroom chat channel of the "Vis Wax!" Discord Server  
+* #general chat channel of the "TestServer" Discord Server operated by MindArkantos
+
+The Wax Bot does not persist any data, store any data, or send any data to external sources. Contents of messages are only used to determine optimal combinations of Vis Wax based on the contents of specifically formatted CSV messages.  
