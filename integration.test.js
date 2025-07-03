@@ -521,7 +521,7 @@ Iron Alts: Body Mind Water Mind`);
             mockPostedMessage.crosspost.mockResolvedValue();
             mockFetch = jest.fn();
             mockDelete = jest.fn();
-            mockFetchedMessages = new Discord.Collection(new Map([[1, { author: { id: 111 }, delete: mockDelete }], [2, { author: { id: 111 }, delete: mockDelete }]]));
+            mockFetchedMessages = new Discord.Collection(new Map([[1, { author: { id: 111 }, delete: mockDelete }], [2, { author: { id: 111 }, delete: mockDelete }],[3, { author: { id: 111 }, delete: mockDelete }],[4, { author: { id: 111 }, delete: mockDelete }]]));
             mockFetch.mockResolvedValue(mockFetchedMessages);
             channels = new Discord.Collection(new Map([
                 [123, { send: mockSend, messages: { fetch: mockFetch } }], [456, { send: mockSend, messages: { fetch: mockFetch } }]]));
@@ -584,7 +584,7 @@ Iron Alts: Death/Astral Death Astral Chaos`);
             expect(mockSend).toHaveBeenCalledTimes(0);
             await expect(Cron.CronJob.mock.calls[0][1]()).resolves;
         });
-        test('Deletes previous messages', async () =>
+        test('Deletes all but 2 previous messages', async () =>
         {
             Scheduled.start(emojis, channels, botId, channelIds);
             await Cron.CronJob.mock.calls[0][1]();

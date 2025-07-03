@@ -33,8 +33,8 @@ module.exports = class Scheduled
                     messageContents = error.message;
                 }
 
-                await this.deleteFromChannels(channels, channelIds, botId);
                 await this.postToChannels(channels, channelIds, messageContents);
+                await this.deleteFromChannels(channels, channelIds, botId);
             }
             catch (error)
             {
@@ -72,7 +72,7 @@ module.exports = class Scheduled
     }
 
     /**
-     * Deletes recently (<50 message old) messages from bot from specified channels
+     * Deletes recent (<50 message old) messages from bot from specified channels with exception of 2 most recent
      * @param {Collection.<Discord.Channel>} channels Collection of discord channels available to Discord Bot
      * @param {Array.<Integer>} channelIds Channel Ids to post message to
      * @param {Integer} botId Author Id to delete messages from
@@ -85,14 +85,12 @@ module.exports = class Scheduled
             const channel = channels.get(channelId);
             const messagesCollection = await channel.messages.fetch();
             const messages = Array.from(messagesCollection.values());
-            let messagesIndex;
-            for (messagesIndex = 0; messagesIndex < messages.length; messagesIndex += 1)
+            const botMessages = messages.filter((message) => message.author.id === botId);
+            let botMessagesIndex;
+            //Deletes all but most recent 2 messages from bot
+            for (botMessagesIndex = 2; botMessagesIndex < botMessages.length; botMessagesIndex += 1)
             {
-                const message = messages[messagesIndex];
-                if (message.author.id === botId)
-                {
-                    await message.delete();
-                }
+                await botMessages[botMessagesIndex].delete();
             }
         }
     }
